@@ -28,10 +28,10 @@ fn main() {
                 Event::Closed => window.close(),
                 Event::KeyPressed {
                     code,
-                    alt,
-                    ctrl,
-                    shift,
-                    system,
+                    alt: _,
+                    ctrl: _,
+                    shift: _,
+                    system: _,
                 } => match code {
                     Key::Right => object.move_((2.0, 0.0)),
                     Key::Left => object.move_((-2.0, 0.0)),

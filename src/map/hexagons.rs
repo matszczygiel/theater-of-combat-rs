@@ -41,6 +41,14 @@ impl HexCoordinates {
         self.clone() + Self::DIRECTIONS[direction]
     }
 
+    pub fn neighbors(&self) -> [Self; 6] {
+        let mut dir = Self::DIRECTIONS.clone();
+        for x in dir.iter_mut() {
+            *x = *x + *self;
+        }
+        dir
+    }
+
     pub fn origin() -> Self {
         Self { x: 0, y: 0, z: 0 }
     }
