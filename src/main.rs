@@ -7,9 +7,6 @@ use sfml::system::Vector2f;
 use sfml::window::*;
 
 fn main() {
-    let coord = map::hexagons::HexCoordinates::new_axial(2, 5);
-    println!("Coord: {:?}", coord);
-
     let mut window = RenderWindow::new(
         (800, 600),
         "Combat theater",
@@ -17,6 +14,8 @@ fn main() {
         &Default::default(),
     );
     window.set_framerate_limit(60);
+
+    let o = map::hexagons::Orientation::POINTY;
 
     let mut object = RectangleShape::with_size(Vector2f { x: 50.0, y: 50.0 });
     object.set_position((0.0, 0.0));
