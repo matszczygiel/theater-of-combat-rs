@@ -99,6 +99,7 @@ impl Sub for HexCoordinates {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct Orientation {
     //orientation matrix (used in the conversion to pixel point), row major
     m: [f32; 4],
@@ -123,10 +124,22 @@ impl Orientation {
     };
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct Layout {
-    orientation: Orientation,
-    size: Vector2f,
-    origin: Vector2i,
+    pub orientation: Orientation,
+    pub size: Vector2f,
+    pub origin: Vector2i,
+}
+
+impl Layout {
+    pub fn corner_offset(&self, corner: u32) -> Vector2f {
+        let angle: f32 =
+            2.0f32 * std::f32::consts::PI * (self.orientation.start_angle + corner as f32) / 6.0f32;
+        Vector2f {
+            x: self.size.x * angle.cos(),
+            y: self.size.y * angle.sin(),
+        }
+    }
 }
 
 pub fn hex_to_pixel(hex: HexCoordinates, layout: Layout) -> Vector2i {
@@ -141,8 +154,10 @@ pub fn hex_to_pixel(hex: HexCoordinates, layout: Layout) -> Vector2i {
 }
 
 pub fn pixel_to_hex(point: Vector2i, layout: Layout) -> HexCoordinates {
-    let pt = Vector2f{x: (point.x - layout.origin.x) as f32, 
-    y:(point.y - layout.origin.y) as f32}     / layout.size;
+    let pt = Vector2f {
+        x: (point.x - layout.origin.x) as f32,
+        y: (point.y - layout.origin.y) as f32,
+    } / layout.size;
     let m = &layout.orientation.minv;
     let q: f32 = m[0] * pt.x + m[1] * pt.y;
     let p: f32 = m[2] * pt.x + m[3] * pt.y;

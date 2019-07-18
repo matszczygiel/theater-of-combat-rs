@@ -3,8 +3,17 @@ extern crate sfml;
 pub mod map;
 
 use sfml::graphics::*;
-use sfml::system::Vector2f;
+use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
+
+use map::*;
+
+static LAYOUT: hexagons::Layout = hexagons::Layout {
+        orientation: hexagons::Orientation::POINTY,
+        size: Vector2f { x: 50.0, y: 50.0 },
+        origin: Vector2i { x: 0, y: 0 },
+    };
+    
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -15,11 +24,21 @@ fn main() {
     );
     window.set_framerate_limit(60);
 
-    let o = map::hexagons::Orientation::POINTY;
+    let mut hex = CustomShape::new(Box::new(filed::HexShape { layout: &LAYOUT }));
+    let mut hex2 = CustomShape::new(Box::new(filed::HexShape { layout: &LAYOUT }));
 
-    let mut object = RectangleShape::with_size(Vector2f { x: 50.0, y: 50.0 });
-    object.set_position((0.0, 0.0));
-    object.set_fill_color(&Color::RED);
+    hex.set_fill_color(&Color::RED);
+    hex.set_position((200.0, 200.0));
+    hex.set_outline_thickness(3.0);
+    hex.set_outline_color(&Color::BLACK);
+    hex.update();
+
+    hex2.set_fill_color(&Color::GREEN);
+    hex2.set_position((200.0, 200.0));
+    hex2.set_outline_thickness(3.0);
+    hex2.set_outline_color(&Color::BLACK);
+    hex2.update();
+
 
     while window.is_open() {
         while let Some(event) = window.poll_event() {
@@ -32,10 +51,10 @@ fn main() {
                     shift: _,
                     system: _,
                 } => match code {
-                    Key::Right => object.move_((2.0, 0.0)),
-                    Key::Left => object.move_((-2.0, 0.0)),
-                    Key::Up => object.move_((0.0, -2.0)),
-                    Key::Down => object.move_((0.0, 2.0)),
+                    Key::Right => hex.move_((2.0, 0.0)),
+                    Key::Left => hex.move_((-2.0, 0.0)),
+                    Key::Up => hex.move_((0.0, -2.0)),
+                    Key::Down => hex.move_((0.0, 2.0)),
                     Key::Escape => window.close(),
                     _ => {}
                 },
@@ -44,7 +63,8 @@ fn main() {
         }
 
         window.clear(&Color::CYAN);
-        object.draw(&mut window, RenderStates::default());
+        window.draw(&hex);
+        window.draw(&hex2);
         window.display();
     }
 }
