@@ -5,7 +5,7 @@ extern crate sfml;
 
 use std::ops::{Add, Neg, Sub};
 
-use sfml::system::Vector2i;
+use sfml::system::{Vector2f, Vector2i};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub struct HexCoordinates {
@@ -99,20 +99,53 @@ impl Sub for HexCoordinates {
     }
 }
 
-pub fn hex_to_pixel(hex: HexCoordinates, size: f32) -> Vector2i {
-    let x: f32 =
-        size * ((3.0f32).sqrt() * (hex.q() as f32) + (3.0f32).sqrt() / 2.0 * (hex.p() as f32));
-    let y: f32 = size * (3.0 / 2.0 * (hex.p() as f32));
+pub struct Orientation {
+    //orientation matrix (used in the conversion to pixel point), row major
+    m: [f32; 4],
+    //inverse of orientation matrix
+    minv: [f32; 4],
+    //multiples of 60 degrees
+    start_angle: f32,
+}
+
+const SQRT_3: f32 = 1.732050807568877;
+
+impl Orientation {
+    pub const POINTY: Self = Orientation {
+        m: [SQRT_3, SQRT_3 / 2.0, 0.0, 3.0 / 2.0],
+        minv: [SQRT_3 / 3.0, -1.0 / 3.0, 0.0, 2.0 / 3.0],
+        start_angle: 0.5,
+    };
+    pub const FLAT: Self = Orientation {
+        m: [3.0 / 2.0, 0.0, SQRT_3 / 2.0, SQRT_3],
+        minv: [2.0 / 3.0, 0.0, -1.0 / 3.0, SQRT_3 / 3.0],
+        start_angle: 0.0,
+    };
+}
+
+pub struct Layout {
+    orientation: Orientation,
+    size: Vector2f,
+    origin: Vector2i,
+}
+
+pub fn hex_to_pixel(hex: HexCoordinates, layout: Layout) -> Vector2i {
+    let m = &layout.orientation.m;
+    let x: f32 = (m[0] * (hex.q() as f32) + m[1] * (hex.p() as f32)) * layout.size.x;
+    let y: f32 = (m[2] * (hex.q() as f32) + m[3] * (hex.p() as f32)) * layout.size.y;
+
     Vector2i {
         x: x.round() as i32,
         y: y.round() as i32,
-    }
+    } + layout.origin
 }
 
-pub fn pixel_to_hex(point: Vector2i, size: f32) -> HexCoordinates {
-    let q: f32 =
-        ((3.0f32).sqrt() / 3.0f32 * (point.x as f32) - 1.0f32 / 3.0f32 * (point.y as f32)) / size;
-    let p: f32 = (2.0f32 / 3.0f32 * (point.y as f32)) / size;
+pub fn pixel_to_hex(point: Vector2i, layout: Layout) -> HexCoordinates {
+    let pt = Vector2f{x: (point.x - layout.origin.x) as f32, 
+    y:(point.y - layout.origin.y) as f32}     / layout.size;
+    let m = &layout.orientation.minv;
+    let q: f32 = m[0] * pt.x + m[1] * pt.y;
+    let p: f32 = m[2] * pt.x + m[3] * pt.y;
 
     let mut rx = q.round();
     let mut ry = (-q - p).round();
@@ -173,6 +206,17 @@ mod tests {
         let c1 = HexCoordinates::new_cube(1, 0, -1);
         let c2 = HexCoordinates::new_cube(3, -2, -1);
         assert_eq!(c1.distance_to(&c2), 2);
+    }
+
+    #[test]
+    fn origin_pixel() {
+        let coord1 = HexCoordinates::new_axial(0, 0);
+        let pixel1 = hex_to_pixel(coord1, 10.0f32);
+        assert_eq!(pixel1, Vector2i { x: 0, y: 0 });
+
+        let pixel1 = Vector2i { x: 0, y: 0 };
+        let coord1 = pixel_to_hex(pixel1, 10.0f32);
+        assert_eq!(coord1, HexCoordinates::new_axial(0, 0));
     }
 
 }
