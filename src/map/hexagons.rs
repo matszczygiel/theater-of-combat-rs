@@ -28,7 +28,7 @@ impl HexCoordinates {
         }
     }
 
-    const DIRECTIONS: [Self; 6] = [
+    pub const DIRECTIONS: [Self; 6] = [
         Self { x: 1, y: -1, z: 0 },
         Self { x: 1, y: 0, z: -1 },
         Self { x: 0, y: 1, z: -1 },
