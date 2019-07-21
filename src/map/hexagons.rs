@@ -1,5 +1,4 @@
 //Based on: https://www.redblobgames.com/grids/hexagons/
-//We use pointy top representation
 
 extern crate sfml;
 
@@ -142,19 +141,15 @@ impl Layout {
     }
 }
 
-pub fn hex_to_pixel(hex: HexCoordinates, layout: Layout) -> Vector2f {
+pub fn hex_to_world_point(hex: HexCoordinates, layout: Layout) -> Vector2f {
     let m = &layout.orientation.m;
     let x: f32 = m[0] * (hex.q() as f32) + m[1] * (hex.p() as f32);
     let y: f32 = m[2] * (hex.q() as f32) + m[3] * (hex.p() as f32);
 
-    Vector2f {
-        x: x,
-        y: y,
-    } * layout.size
-        + layout.origin
+    Vector2f { x: x, y: y } * layout.size + layout.origin
 }
 
-pub fn pixel_to_hex(point: Vector2f, layout: Layout) -> HexCoordinates {
+pub fn world_point_to_hex(point: Vector2f, layout: Layout) -> HexCoordinates {
     let pt = (point - layout.origin) / layout.size;
     let m = &layout.orientation.minv;
     let q: f32 = m[0] * pt.x + m[1] * pt.y;

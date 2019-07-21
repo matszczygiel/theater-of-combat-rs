@@ -12,10 +12,21 @@ pub enum Field {
     Forest,
 }
 
+impl Field {
+    pub fn color(&self) -> Color {
+        match self {
+            Field::Plain => Color::GREEN,
+            Field::Forest => Color::rgb(100, 140, 20),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct HexShape<'a> {
-    pub layout: std::rc::Rc<Layout>,
+    layout: std::rc::Rc<Layout>,
     shape: ConvexShape<'a>,
+    highlighting_shape: ConvexShape<'a>,
+    pub highlighted: bool,
 }
 
 impl<'a> HexShape<'a> {
@@ -23,7 +34,9 @@ impl<'a> HexShape<'a> {
         let shape = ConvexShape::new(6);
         let mut hs = HexShape {
             layout: layout,
-            shape,
+            shape: shape,
+            highlighting_shape: ConvexShape::new(6),
+            highlighted: false,
         };
         hs.update(coordinate);
         hs
@@ -34,14 +47,19 @@ impl<'a> HexShape<'a> {
             self.shape.set_point(i, self.layout.corner_offset(i));
         }
         self.shape
-            .set_position(hex_to_pixel(coordinate, *self.layout));
-            let thickness = -self.layout.size.x.min(self.layout.size.y) * 0.075;
+            .set_position(hex_to_world_point(coordinate, *self.layout));
+        self.highlighting_shape = self.shape.clone();
+
+        let thickness = -self.layout.size.x.min(self.layout.size.y) * 0.04;
         self.shape.set_outline_thickness(thickness);
-        self.shape.set_fill_color(&Color::RED);
         self.shape.set_outline_color(&Color::BLACK);
+
+        self.highlighting_shape.set_outline_thickness(0.0);
+        self.highlighting_shape
+            .set_fill_color(&Color::rgba(255, 0, 0, 120));
     }
 
-    pub fn set_color(&mut self, color: &Color){
+    pub fn set_color(&mut self, color: &Color) {
         self.shape.set_fill_color(color);
     }
 }
@@ -50,8 +68,11 @@ impl<'s> Drawable for HexShape<'s> {
     fn draw<'a: 'shader, 'texture, 'shader, 'shader_texture>(
         &'a self,
         target: &mut RenderTarget,
-        states: RenderStates<'texture, 'shader, 'shader_texture>,
+        _states: RenderStates<'texture, 'shader, 'shader_texture>,
     ) {
-        self.shape.draw(target, states);
+        target.draw(&self.shape);
+        if self.highlighted {
+            target.draw(&self.highlighting_shape);
+        }
     }
 }
