@@ -1,6 +1,7 @@
 extern crate sfml;
 
 pub mod map;
+pub mod units;
 
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
@@ -36,6 +37,8 @@ fn main() {
         window.view().center(),
         window.view().size()
     );
+
+    let mut unit = units::token::Token::new(50.0);
 
     let mut current_mouse_pos = Vector2i::default();
 
@@ -87,13 +90,16 @@ fn main() {
                     }
 
                     window.set_view(&view);
-                },
-                Event::MouseMoved{x, y} => {current_mouse_pos.x = x; current_mouse_pos.y = y;},
-                Event::Resized {width, height} => { 
-                        let mut view = window.view().to_owned();
-                        view.set_size((width as f32, height as f32));
-                        window.set_view(&view);
-                },
+                }
+                Event::MouseMoved { x, y } => {
+                    current_mouse_pos.x = x;
+                    current_mouse_pos.y = y;
+                }
+                Event::Resized { width, height } => {
+                    let mut view = window.view().to_owned();
+                    view.set_size((width as f32, height as f32));
+                    window.set_view(&view);
+                }
                 _ => {}
             }
         }
@@ -104,6 +110,7 @@ fn main() {
 
         window.clear(&Color::CYAN);
         window.draw(&map);
+        window.draw(&unit);
         window.display();
     }
 }

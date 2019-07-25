@@ -54,13 +54,11 @@ impl<'a> Map<'a> {
         self.highlight(world_point_to_hex(point, *self.layout), highlighted);
     }
 
-
     pub fn clear_highlighting(&mut self) {
         for (_, (_, shape)) in self.map.iter_mut() {
             shape.highlighted = false;
         }
     }
-
 }
 
 impl<'s> Drawable for Map<'s> {

@@ -33,8 +33,8 @@ impl<'a> HexShape<'a> {
     pub fn new(layout: std::rc::Rc<Layout>, coordinate: HexCoordinates) -> Self {
         let shape = ConvexShape::new(6);
         let mut hs = HexShape {
-            layout: layout,
-            shape: shape,
+            layout,
+            shape,
             highlighting_shape: ConvexShape::new(6),
             highlighted: false,
         };
