@@ -3,7 +3,7 @@ extern crate sfml;
 use sfml::graphics::{Drawable, RenderStates, RenderTarget};
 use sfml::system::Vector2f;
 
-use crate::filed::*;
+use crate::field::*;
 use crate::hexagons::*;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -57,6 +57,15 @@ impl<'a> Map<'a> {
     pub fn clear_highlighting(&mut self) {
         for (_, (_, shape)) in self.map.iter_mut() {
             shape.highlighted = false;
+        }
+    }
+
+    pub fn hex_to_world_point(&self, hex: HexCoordinates) -> Result<Vector2f, &'static str> {
+        if self.map.contains_key(&hex) {
+            Ok(hex_to_world_point(hex, *self.layout))
+        }
+        else {
+            Err("Map doesn't contain such hex")
         }
     }
 }

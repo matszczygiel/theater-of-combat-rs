@@ -6,7 +6,7 @@ use sfml::graphics::{
 
 use sfml::system::Vector2f;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Token<'a> {
     shape: RectangleShape<'a>,
     highlighting_shape: RectangleShape<'a>,

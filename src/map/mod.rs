@@ -1,3 +1,3 @@
-pub mod filed;
+pub mod field;
 pub mod hexagons;
 pub mod map;

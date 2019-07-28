@@ -38,7 +38,8 @@ fn main() {
         window.view().size()
     );
 
-    let mut unit = units::token::Token::new(50.0);
+    let mut unit = units::unit::Mechanized::new("test unit");
+    unit.place_on_hex(hexagons::HexCoordinates::new_axial(1,-1), map);
 
     let mut current_mouse_pos = Vector2i::default();
 
