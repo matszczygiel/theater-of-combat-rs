@@ -1,7 +1,7 @@
 extern crate sfml;
 
-use crate::map::*;
 use super::token::*;
+use crate::maps::*;
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct MovingComponent {
@@ -9,11 +9,10 @@ pub struct MovingComponent {
     current_moving_pts: i32,
 }
 
-
 #[derive(Debug, Clone, Default)]
 pub struct Mechanized<'a> {
     name: String,
-    mc: MovingComponent,
+    pub mc: MovingComponent,
     token: Token<'a>,
 }
 
@@ -26,20 +25,28 @@ impl<'a> Mechanized<'a> {
         }
     }
 
-
     fn cost_of_entering(field: field::Field) -> i32 {
         match field {
             field::Field::Forest => 2,
-            field::Field::Plain =>1,
+            field::Field::Plain => 1,
         }
     }
 
-    pub fn get_token(&self) -> Token;
+    pub fn get_token(&self) -> &Token {
+        &self.token
+    }
 
-    pub fn place_on_hex(&mut self, hex: hexagons::HexCoordinates, map: map::Map) ->Result<(),&'static str> {
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn place_on_hex(
+        &mut self,
+        hex: hexagons::HexCoordinates,
+        map: &map::Map,
+    ) -> Result<(), &'static str> {
         let pos = map.hex_to_world_point(hex)?;
         self.token.set_position(pos);
         Ok(())
     }
-
 }

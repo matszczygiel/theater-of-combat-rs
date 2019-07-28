@@ -43,8 +43,8 @@ impl<'a> Token<'a> {
         self.highlighting_shape.set_origin((size / 2.0, size / 2.0));
     }
 
-    pub fn set_color(&mut self, color: &Color) {
-        self.shape.set_fill_color(color);
+    pub fn set_color(&mut self, color: Color) {
+        self.shape.set_fill_color(&color);
     }
 
     pub fn set_position(&mut self, position: Vector2f) {

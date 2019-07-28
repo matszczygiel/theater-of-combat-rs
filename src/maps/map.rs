@@ -5,12 +5,14 @@ use sfml::system::Vector2f;
 
 use crate::field::*;
 use crate::hexagons::*;
+
 use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Default)]
 pub struct Map<'a> {
     map: HashMap<HexCoordinates, (Field, HexShape<'a>)>,
+    rivers: HashMap<(HexCoordinates, HexCoordinates), (River, RiverShape<'a>)>,
     layout: Rc<Layout>,
 }
 
@@ -18,6 +20,7 @@ impl<'a> Map<'a> {
     pub fn new(layout: Layout) -> Self {
         Map {
             map: HashMap::default(),
+            rivers: HashMap::default(),
             layout: Rc::from(layout),
         }
     }
@@ -68,6 +71,18 @@ impl<'a> Map<'a> {
             Err("Map doesn't contain such hex")
         }
     }
+
+    pub fn insert_river(&mut self, coordinate1: HexCoordinates, coordinate2: HexCoordinates, river: River) ->Result<(), &'static str> {
+        let mut riv_shape = RiverShape::new(self.layout.clone(), coordinate1, coordinate2)?;
+        riv_shape.set_color(&river.color());
+        if self.map.contains_key(&coordinate1) && self.map.contains_key(&coordinate2) {
+        self.rivers.insert((coordinate1, coordinate2), (river, riv_shape));
+        Ok(())
+        }
+        else {
+            Err("Map doesn't contains respective hexes")
+        }
+    }
 }
 
 impl<'s> Drawable for Map<'s> {
@@ -79,5 +94,9 @@ impl<'s> Drawable for Map<'s> {
         for (_, (_, shape)) in self.map.iter() {
             target.draw(shape);
         }
+        for (_, (_, shape)) in self.rivers.iter() {
+            target.draw(shape);
+        }
+
     }
 }

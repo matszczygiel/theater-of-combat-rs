@@ -16,7 +16,7 @@ pub struct HexCoordinates {
 impl HexCoordinates {
     pub fn new_cube(x: i32, y: i32, z: i32) -> HexCoordinates {
         assert_eq!(x.clone() + y.clone() + z.clone(), 0);
-        HexCoordinates { x: x, y: y, z: z }
+        HexCoordinates { x, y, z }
     }
 
     pub fn new_axial(q: i32, r: i32) -> HexCoordinates {
@@ -37,11 +37,11 @@ impl HexCoordinates {
     ];
 
     pub fn neighbor(&self, direction: usize) -> Self {
-        self.clone() + Self::DIRECTIONS[direction]
+        *self + Self::DIRECTIONS[direction]
     }
 
     pub fn neighbors(&self) -> [Self; 6] {
-        let mut dir = Self::DIRECTIONS.clone();
+        let mut dir = Self::DIRECTIONS;
         for x in dir.iter_mut() {
             *x = *x + *self;
         }
@@ -108,7 +108,7 @@ pub struct Orientation {
     start_angle: f32,
 }
 
-const SQRT_3: f32 = 1.732050807568877;
+const SQRT_3: f32 = 1.732_050_807_568_877;
 
 impl Orientation {
     pub const POINTY: Self = Orientation {
@@ -146,7 +146,7 @@ pub fn hex_to_world_point(hex: HexCoordinates, layout: Layout) -> Vector2f {
     let x: f32 = m[0] * (hex.q() as f32) + m[1] * (hex.p() as f32);
     let y: f32 = m[2] * (hex.q() as f32) + m[3] * (hex.p() as f32);
 
-    Vector2f { x: x, y: y } * layout.size + layout.origin
+    Vector2f { x, y } * layout.size + layout.origin
 }
 
 pub fn world_point_to_hex(point: Vector2f, layout: Layout) -> HexCoordinates {

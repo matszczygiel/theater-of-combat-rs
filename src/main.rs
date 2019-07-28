@@ -1,13 +1,13 @@
 extern crate sfml;
 
-pub mod map;
+pub mod maps;
 pub mod units;
 
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
 
-use map::*;
+use maps::*;
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -24,7 +24,8 @@ fn main() {
         origin: Vector2f { x: 0.0, y: 0.0 },
     };
 
-    let mut map = map::map::Map::new_test(layout);
+    let mut map = maps::map::Map::new_test(layout);
+    map.insert_river(hexagons::HexCoordinates::new_axial(1, 0), hexagons::HexCoordinates::new_axial(1, -1), field::River::Stream);
 
     map.highlight(hexagons::HexCoordinates::new_axial(0, 0), true);
 
@@ -39,7 +40,8 @@ fn main() {
     );
 
     let mut unit = units::unit::Mechanized::new("test unit");
-    unit.place_on_hex(hexagons::HexCoordinates::new_axial(1,-1), map);
+    unit.place_on_hex(hexagons::HexCoordinates::new_axial(1, -1), &map)
+        .unwrap();
 
     let mut current_mouse_pos = Vector2i::default();
 
@@ -47,13 +49,7 @@ fn main() {
         while let Some(event) = window.poll_event() {
             match event {
                 Event::Closed => window.close(),
-                Event::KeyPressed {
-                    code,
-                    alt: _,
-                    ctrl: _,
-                    shift: _,
-                    system: _,
-                } => match code {
+                Event::KeyPressed { code, .. } => match code {
                     Key::Right => {
                         let mut view = window.view().to_owned();
                         view.move_((5.0, 0.0));
@@ -111,7 +107,7 @@ fn main() {
 
         window.clear(&Color::CYAN);
         window.draw(&map);
-        window.draw(&unit);
+        window.draw(unit.get_token());
         window.display();
     }
 }
