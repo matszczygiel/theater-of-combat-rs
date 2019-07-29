@@ -5,23 +5,42 @@ use sfml::system::Vector2f;
 
 use crate::field::*;
 use crate::hexagons::*;
+use crate::graph::*;
 
 use std::collections::HashMap;
 use std::rc::Rc;
 
-#[derive(Debug, Clone, Default)]
-pub struct Map<'a> {
-    map: HashMap<HexCoordinates, (Field, HexShape<'a>)>,
-    rivers: HashMap<(HexCoordinates, HexCoordinates), (River, RiverShape<'a>)>,
-    layout: Rc<Layout>,
+#[derive(Debug, Clone)]
+struct HexSite {
+    coord: HexCoordinates,
+    kind: Field,
 }
 
-impl<'a> Map<'a> {
-    pub fn new(layout: Layout) -> Self {
+#[derive(Debug, Clone)]
+struct RiverSite {
+    side1: HexCoordinates,
+    side2: HexCoordinates,
+    kind: River,
+}
+
+
+#[derive(Debug, Clone, Default)]
+pub struct Map {
+    graph: BidirectionalGraph<i32>,
+    hexes: HashMap<i32, HexSite>,
+    rivers: HashMap<i32, RiverSite>,
+
+    current_free_id: i32,
+
+}
+
+impl Map {
+    pub fn new() -> Self {
         Map {
-            map: HashMap::default(),
+            graph: BidirectionalGraph::default(),
+            hexes: HashMap::default(),
             rivers: HashMap::default(),
-            layout: Rc::from(layout),
+            current_free_id : 0,
         }
     }
 
