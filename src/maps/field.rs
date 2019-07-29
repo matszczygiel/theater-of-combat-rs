@@ -75,13 +75,13 @@ impl<'a> RiverShape<'a> {
             };
 
             self.shape
-                .set_point(0, 1.05 * connecter_orth / 2.0 + 0.1 * connecter);
+                .set_point(0, 1.2 * connecter_orth / 2.0 + 0.15 * connecter);
             self.shape
-                .set_point(1, 1.05 * connecter_orth / 2.0 - 0.1 * connecter);
+                .set_point(1, 1.2 * connecter_orth / 2.0 - 0.15 * connecter);
             self.shape
-                .set_point(2, -1.05 * connecter_orth / 2.0 - 0.1 * connecter);
+                .set_point(2, -1.2 * connecter_orth / 2.0 - 0.15 * connecter);
             self.shape
-                .set_point(3, -1.05 * connecter_orth / 2.0 + 0.1 * connecter);
+                .set_point(3, -1.2 * connecter_orth / 2.0 + 0.15 * connecter);
 
             self.shape.set_position(center);
 
