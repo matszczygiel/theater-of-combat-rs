@@ -66,20 +66,24 @@ impl<'a> Map<'a> {
     pub fn hex_to_world_point(&self, hex: HexCoordinates) -> Result<Vector2f, &'static str> {
         if self.map.contains_key(&hex) {
             Ok(hex_to_world_point(hex, *self.layout))
-        }
-        else {
+        } else {
             Err("Map doesn't contain such hex")
         }
     }
 
-    pub fn insert_river(&mut self, coordinate1: HexCoordinates, coordinate2: HexCoordinates, river: River) ->Result<(), &'static str> {
+    pub fn insert_river(
+        &mut self,
+        coordinate1: HexCoordinates,
+        coordinate2: HexCoordinates,
+        river: River,
+    ) -> Result<(), &'static str> {
         let mut riv_shape = RiverShape::new(self.layout.clone(), coordinate1, coordinate2)?;
         riv_shape.set_color(&river.color());
         if self.map.contains_key(&coordinate1) && self.map.contains_key(&coordinate2) {
-        self.rivers.insert((coordinate1, coordinate2), (river, riv_shape));
-        Ok(())
-        }
-        else {
+            self.rivers
+                .insert((coordinate1, coordinate2), (river, riv_shape));
+            Ok(())
+        } else {
             Err("Map doesn't contains respective hexes")
         }
     }
@@ -97,6 +101,5 @@ impl<'s> Drawable for Map<'s> {
         for (_, (_, shape)) in self.rivers.iter() {
             target.draw(shape);
         }
-
     }
 }

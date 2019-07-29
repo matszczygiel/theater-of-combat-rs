@@ -25,7 +25,11 @@ fn main() {
     };
 
     let mut map = maps::map::Map::new_test(layout);
-    map.insert_river(hexagons::HexCoordinates::new_axial(1, 0), hexagons::HexCoordinates::new_axial(1, -1), field::River::Stream);
+    map.insert_river(
+        hexagons::HexCoordinates::new_axial(1, 0),
+        hexagons::HexCoordinates::new_axial(1, -1),
+        field::River::Stream,
+    );
 
     map.highlight(hexagons::HexCoordinates::new_axial(0, 0), true);
 
