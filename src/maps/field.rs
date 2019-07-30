@@ -8,35 +8,6 @@ use sfml::system::Vector2f;
 
 use crate::hexagons::*;
 
-#[derive(Debug, Copy, Clone)]
-pub enum Field {
-    Plain,
-    Forest,
-}
-
-impl Field {
-    pub fn color(&self) -> Color {
-        match self {
-            Field::Plain => Color::GREEN,
-            Field::Forest => Color::rgb(100, 140, 20),
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum River {
-    Small,
-    Stream,
-}
-
-impl River {
-    pub fn color(&self) -> Color {
-        match self {
-            River::Small => Color::BLUE,
-            River::Stream => Color::CYAN,
-        }
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct RiverShape<'a> {

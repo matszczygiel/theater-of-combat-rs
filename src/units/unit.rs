@@ -25,10 +25,10 @@ impl<'a> Mechanized<'a> {
         }
     }
 
-    fn cost_of_entering(field: field::Field) -> i32 {
+    fn cost_of_entering(field: types::Field) -> i32 {
         match field {
-            field::Field::Forest => 2,
-            field::Field::Plain => 1,
+            types::Field::Forest => 2,
+            types::Field::Plain => 1,
         }
     }
 
