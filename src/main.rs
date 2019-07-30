@@ -24,15 +24,6 @@ fn main() {
         origin: Vector2f { x: 0.0, y: 0.0 },
     };
 
-    let mut map = maps::map::Map::new_test(layout);
-    map.insert_river(
-        hexagons::HexCoordinates::new_axial(1, 0),
-        hexagons::HexCoordinates::new_axial(1, -1),
-        field::River::Stream,
-    );
-
-    map.highlight(hexagons::HexCoordinates::new_axial(0, 0), true);
-
     window.set_view(&View::new(
         Vector2f { x: 0.0, y: 0.0 },
         window.view().size(),
@@ -44,8 +35,6 @@ fn main() {
     );
 
     let mut unit = units::unit::Mechanized::new("test unit");
-    unit.place_on_hex(hexagons::HexCoordinates::new_axial(1, -1), &map)
-        .unwrap();
 
     let mut current_mouse_pos = Vector2i::default();
 
@@ -105,13 +94,8 @@ fn main() {
             }
         }
 
-        map.clear_highlighting();
-        let mouse_pos = window.map_pixel_to_coords_current_view(&current_mouse_pos);
-        map.highlight_at_world_point(mouse_pos, true);
 
         window.clear(&Color::CYAN);
-        window.draw(&map);
-        window.draw(unit.get_token());
         window.display();
     }
 }

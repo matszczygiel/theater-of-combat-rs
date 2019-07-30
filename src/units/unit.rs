@@ -45,8 +45,8 @@ impl<'a> Mechanized<'a> {
         hex: hexagons::HexCoordinates,
         map: &map::Map,
     ) -> Result<(), &'static str> {
-        let pos = map.hex_to_world_point(hex)?;
-        self.token.set_position(pos);
+      //  let pos = map.hex_to_world_point(hex)?;
+      //  self.token.set_position(pos);
         Ok(())
     }
 }
