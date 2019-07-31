@@ -4,7 +4,7 @@ use crate::graph::*;
 use crate::hexagons::*;
 use crate::types::*;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, Copy)]
 pub struct HexSite {
@@ -121,4 +121,68 @@ impl Map {
         self.current_free_id += 1;
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_simple_map_insertions() {
+        let mut map = Map::new();
+        for r in -1..=1 {
+            for q in -1..=1 {
+                map.insert_hex(HexSite {
+                    coord: HexCoordinates::new_axial(q, r),
+                    kind: Field::Plain,
+                })
+                .unwrap();
+            }
+        }
+        map.insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, -1),
+            side2: HexCoordinates::new_axial(1, -1),
+            kind: River::Stream,
+        })
+        .unwrap();
+
+        map.insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, 0),
+            side2: HexCoordinates::new_axial(1, -1),
+            kind: River::Stream,
+        })
+        .unwrap();
+
+        map.insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, 0),
+            side2: HexCoordinates::new_axial(1, 0),
+            kind: River::Stream,
+        })
+        .unwrap();
+
+        map.insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(1, 0),
+            side2: HexCoordinates::new_axial(0, 1),
+            kind: River::Stream,
+        })
+        .unwrap();
+
+        let mut graph = BidirectionalGraph::new();
+        graph.insert_node(0, HashSet::default());
+        graph.insert_node(1, [0].into_iter().cloned().collect());
+        graph.insert_node(2, [1].into_iter().cloned().collect());
+        graph.insert_node(3, [0, 1].into_iter().cloned().collect());
+        graph.insert_node(4, [3, 1, 2].into_iter().cloned().collect());
+        graph.insert_node(5, [4, 2].into_iter().cloned().collect());
+        graph.insert_node(6, [3, 4].into_iter().cloned().collect());
+        graph.insert_node(7, [6, 4, 5].into_iter().cloned().collect());
+        graph.insert_node(8, [5, 7].into_iter().cloned().collect());
+        graph.insert_node(9, [1, 2].into_iter().cloned().collect());
+        graph.insert_node(10, [2, 4].into_iter().cloned().collect());
+        graph.insert_node(11, [4, 5].into_iter().cloned().collect());
+        graph.insert_node(12, [5, 7].into_iter().cloned().collect());
+
+        assert_eq!(map.graph.graph, graph.graph);
+    }
+
 }

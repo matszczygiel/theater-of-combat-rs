@@ -3,11 +3,15 @@ use std::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Default, Debug, Clone)]
-pub struct BidirectionalGraph<T: Debug + Clone + Hash + Eq> {
+pub struct BidirectionalGraph<T: Debug + Clone + Hash + Eq + Default> {
     graph: HashMap<T, HashSet<T>>,
 }
 
-impl<T: Debug + Clone + Hash + Eq> BidirectionalGraph<T> {
+impl<T: Debug + Clone + Hash + Eq + Default> BidirectionalGraph<T> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn insert_node(&mut self, node: T, neighbors: HashSet<T>) -> Result<(), &'static str> {
         for n in neighbors.iter() {
             self.graph
@@ -36,8 +40,12 @@ impl<T: Debug + Clone + Hash + Eq> BidirectionalGraph<T> {
     }
 }
 
+impl<T: Debug + Clone + Hash + Eq + Default> Eq for BidirectionalGraph<T> {
+
+}
+
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
