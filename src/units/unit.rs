@@ -10,6 +10,17 @@ pub struct MovingComponent {
 }
 
 impl MovingComponent {
+    pub fn reduce_mv_pts(&mut self, cost: i32) -> Result<&mut Self, &'static str> {
+        if self.current_moving_pts < cost {
+            return Err("Cost of movement higher than available moving_pts.");
+        }
+        self.current_moving_pts -= cost;
+        Ok(self)
+    }
+
+    pub fn reest_mv_pts(&mut self) {
+        self.current_moving_pts = self.def_moving_pts;
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -30,24 +41,37 @@ impl Mechanized {
         }
     }
 
-    fn cost_of_entering(field: types::Field) -> i32 {
+    pub fn cost_of_entering_hex(field: types::Field) -> i32 {
         match field {
             types::Field::Forest => 2,
             types::Field::Plain => 1,
+            _ => panic!(),
+        }
+    }
+
+    pub fn cost_of_crossing_river(river: types::River) -> i32 {
+        match river {
+            types::River::Small => 6,
+            types::River::Stream => 4,
+            _ => panic!(),
         }
     }
 
     pub fn get_name(&self) -> &String {
         &self.name
     }
+}
 
-    pub fn place_on_hex(
-        &mut self,
-        hex: hexagons::HexCoordinates,
-        map: &map::Map,
-    ) -> Result<(), &'static str> {
-        //  let pos = map.hex_to_world_point(hex)?;
-        //  self.token.set_position(pos);
-        Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn moving_component_test() {
+        let mut unit = Mechanized::new("Mechanized unit");
+        let map = map::Map::create_test_map();
+
+        let paths = unit.mc.get_accesible_sites(&map).unwrap();
+
     }
 }

@@ -9,4 +9,3 @@ pub enum River {
     Small,
     Stream,
 }
-

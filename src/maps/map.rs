@@ -124,6 +124,44 @@ impl Map {
         self.current_free_id += 1;
         Ok(self)
     }
+
+    pub fn create_test_map() -> Self {
+        let mut map = Map::new();
+        for r in -1..=1 {
+            for q in -1..=1 {
+                map.insert_hex(HexSite {
+                    coord: HexCoordinates::new_axial(q, r),
+                    kind: Field::Plain,
+                })
+                .unwrap();
+            }
+        }
+        map.insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, -1),
+            side2: HexCoordinates::new_axial(1, -1),
+            kind: River::Stream,
+        })
+        .unwrap()
+        .insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, 0),
+            side2: HexCoordinates::new_axial(1, -1),
+            kind: River::Stream,
+        })
+        .unwrap()
+        .insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(0, 0),
+            side2: HexCoordinates::new_axial(1, 0),
+            kind: River::Stream,
+        })
+        .unwrap()
+        .insert_river(RiverSite {
+            side1: HexCoordinates::new_axial(1, 0),
+            side2: HexCoordinates::new_axial(0, 1),
+            kind: River::Stream,
+        })
+        .unwrap();
+        map
+    }
 }
 
 #[cfg(test)]
