@@ -2,8 +2,8 @@ use std::collections::*;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-#[derive(Default, Debug, Clone)]
-pub struct BidirectionalGraph<T: Debug + Clone + Hash + Eq + Default> {
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
+pub struct BidirectionalGraph<T: Debug + Clone + Hash + Eq + PartialEq + Default> {
     graph: HashMap<T, HashSet<T>>,
 }
 
@@ -12,7 +12,11 @@ impl<T: Debug + Clone + Hash + Eq + Default> BidirectionalGraph<T> {
         Self::default()
     }
 
-    pub fn insert_node(&mut self, node: T, neighbors: HashSet<T>) -> Result<(), &'static str> {
+    pub fn insert_node(
+        &mut self,
+        node: T,
+        neighbors: HashSet<T>,
+    ) -> Result<&mut Self, &'static str> {
         for n in neighbors.iter() {
             self.graph
                 .get_mut(n)
@@ -24,24 +28,20 @@ impl<T: Debug + Clone + Hash + Eq + Default> BidirectionalGraph<T> {
             return Err("Reinserting node into the graph.");
         }
 
-        Ok(())
+        Ok(self)
     }
 
-    pub fn remove_node(&mut self, node: T) -> Result<(), &'static str> {
+    pub fn remove_node(&mut self, node: T) -> Result<&mut Self, &'static str> {
         self.graph
             .remove(&node)
             .ok_or("Removing nonexistent node.")?;
 
-        for (_, v) in self.graph.iter_mut() {
+        for v in self.graph.values_mut() {
             v.remove(&node);
         }
 
-        Ok(())
+        Ok(self)
     }
-}
-
-impl<T: Debug + Clone + Hash + Eq + Default> Eq for BidirectionalGraph<T> {
-
 }
 
 #[cfg(test)]

@@ -1,27 +1,32 @@
 extern crate sfml;
 
-use super::token::*;
 use crate::maps::*;
 
-#[derive(Debug, Copy, Clone, Default)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub struct MovingComponent {
     def_moving_pts: i32,
     current_moving_pts: i32,
+    pub occupation: Option<hexagons::HexCoordinates>,
+}
+
+impl MovingComponent {
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct Mechanized<'a> {
+pub struct Mechanized {
     name: String,
     pub mc: MovingComponent,
-    token: Token<'a>,
 }
 
-impl<'a> Mechanized<'a> {
+impl Mechanized {
     pub fn new(name: &str) -> Self {
         Mechanized {
             name: name.to_owned(),
-            mc: MovingComponent::default(),
-            token: Token::new(50.0),
+            mc: MovingComponent {
+                def_moving_pts: 15,
+                current_moving_pts: 15,
+                occupation: None,
+            },
         }
     }
 
@@ -30,10 +35,6 @@ impl<'a> Mechanized<'a> {
             types::Field::Forest => 2,
             types::Field::Plain => 1,
         }
-    }
-
-    pub fn get_token(&self) -> &Token {
-        &self.token
     }
 
     pub fn get_name(&self) -> &String {
@@ -45,8 +46,8 @@ impl<'a> Mechanized<'a> {
         hex: hexagons::HexCoordinates,
         map: &map::Map,
     ) -> Result<(), &'static str> {
-      //  let pos = map.hex_to_world_point(hex)?;
-      //  self.token.set_position(pos);
+        //  let pos = map.hex_to_world_point(hex)?;
+        //  self.token.set_position(pos);
         Ok(())
     }
 }

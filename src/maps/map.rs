@@ -38,7 +38,7 @@ impl Map {
         }
     }
 
-    pub fn insert_hex(&mut self, hex: HexSite) -> Result<(), &'static str> {
+    pub fn insert_hex(&mut self, hex: HexSite) -> Result<&mut Self, &'static str> {
         if self
             .hexes
             .iter()
@@ -58,8 +58,9 @@ impl Map {
 
         let found_neighbors: HashMap<_, _> = self
             .hexes
-            .iter()
-            .filter(|&(id, h)| {
+            .clone()
+            .into_iter()
+            .filter(|(id, h)| {
                 if neighbours.contains(&h.coord) {
                     return true;
                 } else {
@@ -68,15 +69,17 @@ impl Map {
             })
             .collect();
 
+        self.hexes.insert(self.current_free_id, hex);
+
         self.graph.insert_node(
             self.current_free_id,
-            found_neighbors.keys().cloned().cloned().collect(),
+            found_neighbors.keys().cloned().collect(),
         )?;
         self.current_free_id += 1;
-        Ok(())
+        Ok(self)
     }
 
-    pub fn insert_river(&mut self, river: RiverSite) -> Result<(), &'static str> {
+    pub fn insert_river(&mut self, river: RiverSite) -> Result<&mut Self, &'static str> {
         let found_hexes: HashMap<_, _> = self
             .hexes
             .iter()
@@ -119,7 +122,7 @@ impl Map {
             found_hexes.keys().cloned().cloned().collect(),
         )?;
         self.current_free_id += 1;
-        Ok(())
+        Ok(self)
     }
 }
 
@@ -144,23 +147,20 @@ mod tests {
             side2: HexCoordinates::new_axial(1, -1),
             kind: River::Stream,
         })
-        .unwrap();
-
-        map.insert_river(RiverSite {
+        .unwrap()
+        .insert_river(RiverSite {
             side1: HexCoordinates::new_axial(0, 0),
             side2: HexCoordinates::new_axial(1, -1),
             kind: River::Stream,
         })
-        .unwrap();
-
-        map.insert_river(RiverSite {
+        .unwrap()
+        .insert_river(RiverSite {
             side1: HexCoordinates::new_axial(0, 0),
             side2: HexCoordinates::new_axial(1, 0),
             kind: River::Stream,
         })
-        .unwrap();
-
-        map.insert_river(RiverSite {
+        .unwrap()
+        .insert_river(RiverSite {
             side1: HexCoordinates::new_axial(1, 0),
             side2: HexCoordinates::new_axial(0, 1),
             kind: River::Stream,
@@ -168,21 +168,35 @@ mod tests {
         .unwrap();
 
         let mut graph = BidirectionalGraph::new();
-        graph.insert_node(0, HashSet::default());
-        graph.insert_node(1, [0].into_iter().cloned().collect());
-        graph.insert_node(2, [1].into_iter().cloned().collect());
-        graph.insert_node(3, [0, 1].into_iter().cloned().collect());
-        graph.insert_node(4, [3, 1, 2].into_iter().cloned().collect());
-        graph.insert_node(5, [4, 2].into_iter().cloned().collect());
-        graph.insert_node(6, [3, 4].into_iter().cloned().collect());
-        graph.insert_node(7, [6, 4, 5].into_iter().cloned().collect());
-        graph.insert_node(8, [5, 7].into_iter().cloned().collect());
-        graph.insert_node(9, [1, 2].into_iter().cloned().collect());
-        graph.insert_node(10, [2, 4].into_iter().cloned().collect());
-        graph.insert_node(11, [4, 5].into_iter().cloned().collect());
-        graph.insert_node(12, [5, 7].into_iter().cloned().collect());
+        graph
+            .insert_node(0, HashSet::default())
+            .unwrap()
+            .insert_node(1, [0].iter().cloned().collect())
+            .unwrap()
+            .insert_node(2, [1].iter().cloned().collect())
+            .unwrap()
+            .insert_node(3, [0, 1].iter().cloned().collect())
+            .unwrap()
+            .insert_node(4, [3, 1, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(5, [4, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(6, [3, 4].iter().cloned().collect())
+            .unwrap()
+            .insert_node(7, [6, 4, 5].iter().cloned().collect())
+            .unwrap()
+            .insert_node(8, [5, 7].iter().cloned().collect())
+            .unwrap()
+            .insert_node(9, [1, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(10, [2, 4].iter().cloned().collect())
+            .unwrap()
+            .insert_node(11, [4, 5].iter().cloned().collect())
+            .unwrap()
+            .insert_node(12, [5, 7].iter().cloned().collect())
+            .unwrap();
 
-        assert_eq!(map.graph.graph, graph.graph);
+        assert_eq!(map.graph, graph);
     }
 
 }
