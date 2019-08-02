@@ -69,9 +69,9 @@ mod tests {
     #[test]
     fn moving_component_test() {
         let mut unit = Mechanized::new("Mechanized unit");
+        unit.mc.occupation = Some(hexagons::HexCoordinates::new_axial(1, -1));
         let map = map::Map::create_test_map();
 
-        let paths = unit.mc.get_accesible_sites(&map).unwrap();
-
+        // let paths = unit.mc.get_accesible_sites(&map).unwrap();
     }
 }
