@@ -3,24 +3,44 @@ use super::shapes::*;
 use crate::maps::*;
 
 use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug, Default)]
-struct Map<'a> {
-    layout: Rc<hexagons::Layout>,
+pub struct Map<'a> {
+    pub layout: Rc<RefCell<hexagons::Layout>>,
     pub hexes: Vec<HexShape<'a>>,
     pub rivers: Vec<RiverShape<'a>>,
 }
 
 impl<'a> Map<'a> {
-    pub fn from(map: &map::Map) -> Self {
-        let mut m = Map {
-            hexes: Vec::new(),
-            rivers: Vec::new(),
-        };
+    pub fn new(map: &map::Map, layout: hexagons::Layout) -> Self {
+        let layout = Rc::new(RefCell::new(layout));
+        Map {
+            layout: layout.clone(),
+            hexes: map
+                .hexes()
+                .values()
+                .map(|site| HexShape::new(layout.clone(), *site))
+                .collect(),
+            rivers: map
+                .rivers()
+                .values()
+                .map(|site| RiverShape::new(layout.clone(), *site))
+                .collect(),
+        }
+    }
 
-        m.hexes = map.hexes().values().map(|site|{ HexShape::new(layout: Rc<hexagons::Layout>, site: map::HexSite)});
+    pub fn update(&mut self, map: &map::Map) {
+        self.hexes = map
+            .hexes()
+            .values()
+            .map(|site| HexShape::new(self.layout.clone(), *site))
+            .collect();
 
-
-        m
+        self.rivers = map
+            .rivers()
+            .values()
+            .map(|site| RiverShape::new(self.layout.clone(), *site))
+            .collect();
     }
 }

@@ -7,6 +7,7 @@ use sfml::graphics::{
 use sfml::system::Vector2f;
 
 use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::maps::{hexagons, map, types};
 
@@ -26,30 +27,35 @@ pub fn river_color(kind: types::River) -> Color {
 
 #[derive(Debug, Clone)]
 pub struct RiverShape<'a> {
-    layout: Rc<hexagons::Layout>,
+    layout: Rc<RefCell<hexagons::Layout>>,
     shape: ConvexShape<'a>,
 }
 
 impl<'a> RiverShape<'a> {
-    pub fn new(layout: Rc<hexagons::Layout>, site: map::RiverSite) -> Result<Self, &'static str> {
+    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, site: map::RiverSite) -> Self {
         let shape = ConvexShape::new(4);
-        let mut rs = RiverShape { layout, shape };
+        let mut rs = RiverShape {
+            layout,
+            shape,
+        };
         rs.update(site);
-        Ok(rs)
+        rs
     }
 
     pub fn update(&mut self, site: map::RiverSite) {
         let coordinate1 = *site.sides().0;
         let coordinate2 = *site.sides().1;
 
-        let vec1 = hexagons::hex_to_world_point(coordinate1, *self.layout);
-        let vec2 = hexagons::hex_to_world_point(coordinate2, *self.layout);
+        let layout = *self.layout.borrow();
+
+        let vec1 = hexagons::hex_to_world_point(coordinate1, layout);
+        let vec2 = hexagons::hex_to_world_point(coordinate2, layout);
 
         let center = (vec1 + vec2) / 2.0;
         let connecter = (vec1 - vec2) / 2.0;
         let connecter_orth = Vector2f {
-            x: -connecter.y * self.layout.size.x / self.layout.size.y,
-            y: connecter.x * self.layout.size.y / self.layout.size.x,
+            x: -connecter.y * layout.size.x / layout.size.y,
+            y: connecter.x * layout.size.y / layout.size.x,
         };
 
         self.shape
@@ -71,26 +77,17 @@ impl<'a> RiverShape<'a> {
         &self.shape
     }
 }
-impl<'s> Drawable for RiverShape<'s> {
-    fn draw<'a: 'shader, 'texture, 'shader, 'shader_texture>(
-        &'a self,
-        target: &mut RenderTarget,
-        _states: RenderStates<'texture, 'shader, 'shader_texture>,
-    ) {
-        target.draw(&self.shape);
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct HexShape<'a> {
-    layout: Rc<hexagons::Layout>,
+    layout: Rc<RefCell<hexagons::Layout>>,
     shape: ConvexShape<'a>,
     highlighting_shape: ConvexShape<'a>,
     outline_shape: ConvexShape<'a>,
 }
 
 impl<'a> HexShape<'a> {
-    pub fn new(layout: Rc<hexagons::Layout>, site: map::HexSite) -> Self {
+    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, site: map::HexSite) -> Self {
         let mut hs = HexShape {
             layout,
             shape: ConvexShape::new(6),
@@ -102,15 +99,16 @@ impl<'a> HexShape<'a> {
     }
 
     pub fn update(&mut self, site: map::HexSite) {
+        let layout = *self.layout.borrow();
         for i in 0..6 {
-            self.shape.set_point(i, self.layout.corner_offset(i));
+            self.shape.set_point(i, layout.corner_offset(i));
         }
         self.shape
-            .set_position(hexagons::hex_to_world_point(*site.coord(), *self.layout));
+            .set_position(hexagons::hex_to_world_point(*site.coord(), layout));
         self.highlighting_shape = self.shape.clone();
         self.outline_shape = self.shape.clone();
 
-        let thickness = -self.layout.size.x.min(self.layout.size.y) * 0.04;
+        let thickness = -layout.size.x.min(layout.size.y) * 0.04;
         self.outline_shape.set_outline_thickness(thickness);
         self.outline_shape.set_outline_color(&Color::BLACK);
         self.outline_shape.set_fill_color(&Color::TRANSPARENT);

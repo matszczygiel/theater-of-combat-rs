@@ -8,6 +8,8 @@ mod graphics;
 mod maps;
 mod units;
 
+use std::rc::Rc;
+
 fn main() {
     let mut window = RenderWindow::new(
         (800, 600),
@@ -16,22 +18,19 @@ fn main() {
         &Default::default(),
     );
     window.set_framerate_limit(60);
+    window.set_view(&View::new(
+        Vector2f { x: 0.0, y: 0.0 },
+        window.view().size(),
+    ));
 
-    let layout = maps::hexagons::Layout {
+    let mut layout = maps::hexagons::Layout {
         orientation: maps::hexagons::Orientation::FLAT,
         size: Vector2f { x: 50.0, y: 50.0 },
         origin: Vector2f { x: 0.0, y: 0.0 },
     };
 
-    window.set_view(&View::new(
-        Vector2f { x: 0.0, y: 0.0 },
-        window.view().size(),
-    ));
-    println!(
-        "c: {:?}, s: {:?}",
-        window.view().center(),
-        window.view().size()
-    );
+    let map = maps::map::Map::create_test_map();
+    let mut map_gfx = graphics::map::Map::new(&map, layout);
 
     let mut unit = units::unit::Mechanized::new("test unit");
 
@@ -63,6 +62,8 @@ fn main() {
                         window.set_view(&view);
                     }
                     Key::Escape => window.close(),
+                    Key::W => map_gfx.layout.borrow_mut().size.y *= 0.95,
+                    Key::S => map_gfx.layout.borrow_mut().size.y *= 1.05,
                     _ => {}
                 },
                 Event::MouseWheelScrolled {
@@ -93,7 +94,18 @@ fn main() {
             }
         }
 
+        map_gfx.update(&map);
+
         window.clear(&Color::CYAN);
+
+        for hex in map_gfx.hexes.iter() {
+            window.draw(hex.fill_shape());
+        }
+
+        for hex in map_gfx.hexes.iter() {
+            window.draw(hex.outline_shape());
+        }
+
         window.display();
     }
 }
