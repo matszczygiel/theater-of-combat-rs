@@ -1,13 +1,12 @@
 extern crate sfml;
 
-pub mod maps;
-pub mod units;
-
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
 
+use graphics::*;
 use maps::*;
+use units::*;
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -93,7 +92,6 @@ fn main() {
                 _ => {}
             }
         }
-
 
         window.clear(&Color::CYAN);
         window.display();
