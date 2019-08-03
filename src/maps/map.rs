@@ -1,8 +1,8 @@
 extern crate sfml;
 
-use crate::graph::*;
-use crate::hexagons::*;
-use crate::types::*;
+use super::graph::*;
+use super::hexagons::*;
+use super::types::*;
 
 use std::collections::{HashMap, HashSet};
 
@@ -12,11 +12,44 @@ pub struct HexSite {
     kind: Field,
 }
 
+impl HexSite {
+    pub fn new(coord: HexCoordinates, kind: Field) -> HexSite{
+        HexSite{coord, kind}
+    }
+
+    pub fn coord(&self) -> &HexCoordinates {
+        &self.coord
+    }
+
+    pub fn kind(&self) -> Field {
+        self.kind
+    }
+}
+
+
 #[derive(Debug, Clone, Copy)]
 pub struct RiverSite {
     side1: HexCoordinates,
     side2: HexCoordinates,
     kind: River,
+}
+
+impl RiverSite {
+    pub fn new(side1: HexCoordinates, side2: HexCoordinates, kind: River) -> Result<Self, &'static str>{
+        if side1.neighbors().contains(&side2) {
+            Ok(RiverSite{side1 , side2 , kind})
+        } else{
+            Err("Creating RiverSite with non neighboring sides.")
+        }
+    }
+
+    pub fn sides(&self) -> (&HexCoordinates, &HexCoordinates) {
+        (&self.side1, &self.side2)
+    }
+
+    pub fn kind(&self) -> River {
+        self.kind
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -36,6 +69,14 @@ impl Map {
             rivers: HashMap::default(),
             current_free_id: 0,
         }
+    }
+
+    pub fn hexes(&self) -> &HashMap<i32, HexSite> {
+        &self.hexes
+    }
+
+    pub fn rivers(&self) -> &HashMap<i32, RiverSite> {
+        &self.rivers
     }
 
     pub fn insert_hex(&mut self, hex: HexSite) -> Result<&mut Self, &'static str> {
@@ -136,29 +177,26 @@ impl Map {
                 .unwrap();
             }
         }
-        map.insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, -1),
-            side2: HexCoordinates::new_axial(1, -1),
-            kind: River::Stream,
-        })
+        map.insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, -1),
+              HexCoordinates::new_axial(1, -1),
+              River::Stream).unwrap()
+        )
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, 0),
-            side2: HexCoordinates::new_axial(1, -1),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, 0),
+              HexCoordinates::new_axial(1, -1),
+              River::Stream).unwrap())
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, 0),
-            side2: HexCoordinates::new_axial(1, 0),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, 0),
+              HexCoordinates::new_axial(1, 0),
+              River::Stream).unwrap())
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(1, 0),
-            side2: HexCoordinates::new_axial(0, 1),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(1, 0),
+              HexCoordinates::new_axial(0, 1),
+              River::Stream).unwrap())
         .unwrap();
         map
     }
@@ -175,34 +213,30 @@ mod tests {
             for q in -1..=1 {
                 map.insert_hex(HexSite {
                     coord: HexCoordinates::new_axial(q, r),
-                    kind: Field::Plain,
+                      kind: Field::Plain,
                 })
                 .unwrap();
             }
         }
-        map.insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, -1),
-            side2: HexCoordinates::new_axial(1, -1),
-            kind: River::Stream,
-        })
+        map.insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, -1),
+              HexCoordinates::new_axial(1, -1),
+              River::Stream).unwrap())
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, 0),
-            side2: HexCoordinates::new_axial(1, -1),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, 0),
+              HexCoordinates::new_axial(1, -1),
+              River::Stream).unwrap())
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(0, 0),
-            side2: HexCoordinates::new_axial(1, 0),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(0, 0),
+              HexCoordinates::new_axial(1, 0),
+             River::Stream).unwrap())
         .unwrap()
-        .insert_river(RiverSite {
-            side1: HexCoordinates::new_axial(1, 0),
-            side2: HexCoordinates::new_axial(0, 1),
-            kind: River::Stream,
-        })
+        .insert_river(RiverSite::new(
+              HexCoordinates::new_axial(1, 0),
+              HexCoordinates::new_axial(0, 1),
+             River::Stream).unwrap())
         .unwrap();
 
         let mut graph = BidirectionalGraph::new();

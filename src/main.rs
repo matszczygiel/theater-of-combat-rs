@@ -4,9 +4,9 @@ use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
 
-use graphics::*;
-use maps::*;
-use units::*;
+mod graphics;
+mod maps;
+mod units;
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -17,8 +17,8 @@ fn main() {
     );
     window.set_framerate_limit(60);
 
-    let layout = hexagons::Layout {
-        orientation: hexagons::Orientation::FLAT,
+    let layout = maps::hexagons::Layout {
+        orientation: maps::hexagons::Orientation::FLAT,
         size: Vector2f { x: 50.0, y: 50.0 },
         origin: Vector2f { x: 0.0, y: 0.0 },
     };
