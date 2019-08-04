@@ -32,6 +32,8 @@ fn main() {
     let map = maps::map::Map::create_test_map();
     let mut map_gfx = graphics::map::Map::new(&map, layout);
 
+    let font = Font::from_file("resources/fonts/OpenSans-Regular.ttf").unwrap();
+
     let mut unit = units::unit::Mechanized::new("test unit");
 
     let mut current_mouse_pos = Vector2i::default();
@@ -101,6 +103,7 @@ fn main() {
         map_gfx.draw_hexes(&mut window);
         map_gfx.draw_rivers(&mut window);
         map_gfx.draw_outlines(&mut window);
+        map_gfx.draw_coords(&mut window, &font);
 
         let coordinate = maps::hexagons::world_point_to_hex(
             window.map_pixel_to_coords_current_view(&current_mouse_pos),
