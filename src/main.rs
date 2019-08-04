@@ -98,15 +98,14 @@ fn main() {
 
         window.clear(&Color::CYAN);
 
-        for hex in map_gfx.hexes.values() {
-            window.draw(hex.fill_shape());
-        }
+        map_gfx.draw_hexes(&mut window);
+        map_gfx.draw_rivers(&mut window);
+        map_gfx.draw_outlines(&mut window);
 
-        for hex in map_gfx.hexes.values() {
-            window.draw(hex.outline_shape());
-        }
-
-        let coordinate = maps::hexagons::world_point_to_hex(window.map_pixel_to_coords_current_view(&current_mouse_pos), map_gfx.layout.borrow().clone());
+        let coordinate = maps::hexagons::world_point_to_hex(
+            window.map_pixel_to_coords_current_view(&current_mouse_pos),
+            map_gfx.layout.borrow().clone(),
+        );
 
         let entry = map_gfx.hexes.get(&coordinate);
         match entry {

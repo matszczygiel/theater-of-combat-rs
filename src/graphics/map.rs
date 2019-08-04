@@ -1,3 +1,7 @@
+extern crate sfml;
+
+use sfml::graphics::RenderTarget;
+
 use super::shapes::*;
 
 use crate::maps::*;
@@ -38,5 +42,23 @@ impl<'a> Map<'a> {
             .map(|site| RiverShape::new(self.layout.clone(), *site))
             .collect();
         self
+    }
+
+    pub fn draw_hexes(&self, target: &mut RenderTarget) {
+        for hex in self.hexes.values() {
+            target.draw(hex.fill_shape());
+        }
+    }
+
+    pub fn draw_rivers(&self, target: &mut RenderTarget) {
+        for riv in self.rivers.iter() {
+            target.draw(riv.shape());
+        }
+    }
+
+    pub fn draw_outlines(&self, target: &mut RenderTarget) {
+        for hex in self.hexes.values() {
+            target.draw(hex.outline_shape());
+        }
     }
 }

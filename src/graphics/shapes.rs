@@ -6,8 +6,8 @@ use sfml::graphics::{
 
 use sfml::system::Vector2f;
 
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use crate::maps::{hexagons, map, types};
 
@@ -22,59 +22,6 @@ pub fn river_color(kind: types::River) -> Color {
     match kind {
         types::River::Small => Color::BLUE,
         types::River::Stream => Color::CYAN,
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct RiverShape<'a> {
-    layout: Rc<RefCell<hexagons::Layout>>,
-    shape: ConvexShape<'a>,
-}
-
-impl<'a> RiverShape<'a> {
-    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, site: map::RiverSite) -> Self {
-        let shape = ConvexShape::new(4);
-        let mut rs = RiverShape {
-            layout,
-            shape,
-        };
-        rs.update(site);
-        rs
-    }
-
-    pub fn update(&mut self, site: map::RiverSite) {
-        let coordinate1 = *site.sides().0;
-        let coordinate2 = *site.sides().1;
-
-        let layout = *self.layout.borrow();
-
-        let vec1 = hexagons::hex_to_world_point(coordinate1, layout);
-        let vec2 = hexagons::hex_to_world_point(coordinate2, layout);
-
-        let center = (vec1 + vec2) / 2.0;
-        let connecter = (vec1 - vec2) / 2.0;
-        let connecter_orth = Vector2f {
-            x: -connecter.y * layout.size.x / layout.size.y,
-            y: connecter.x * layout.size.y / layout.size.x,
-        };
-
-        self.shape
-            .set_point(0, 1.05 * connecter_orth / 2.0 + 0.1 * connecter);
-        self.shape
-            .set_point(1, 1.05 * connecter_orth / 2.0 - 0.1 * connecter);
-        self.shape
-            .set_point(2, -1.05 * connecter_orth / 2.0 - 0.1 * connecter);
-        self.shape
-            .set_point(3, -1.05 * connecter_orth / 2.0 + 0.1 * connecter);
-
-        self.shape.set_position(center);
-        self.shape.set_outline_thickness(0.0);
-
-        self.shape.set_fill_color(&river_color(site.kind()));
-    }
-
-    pub fn shape(&self) -> &ConvexShape<'a> {
-        &self.shape
     }
 }
 
@@ -131,5 +78,55 @@ impl<'a> HexShape<'a> {
 
     pub fn highlight_shape(&self) -> &ConvexShape<'a> {
         &self.highlighting_shape
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RiverShape<'a> {
+    layout: Rc<RefCell<hexagons::Layout>>,
+    shape: ConvexShape<'a>,
+}
+
+impl<'a> RiverShape<'a> {
+    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, site: map::RiverSite) -> Self {
+        let shape = ConvexShape::new(4);
+        let mut rs = RiverShape { layout, shape };
+        rs.update(site);
+        rs
+    }
+
+    pub fn update(&mut self, site: map::RiverSite) {
+        let coordinate1 = *site.sides().0;
+        let coordinate2 = *site.sides().1;
+
+        let layout = *self.layout.borrow();
+
+        let vec1 = hexagons::hex_to_world_point(coordinate1, layout);
+        let vec2 = hexagons::hex_to_world_point(coordinate2, layout);
+
+        let center = (vec1 + vec2) / 2.0;
+        let connecter = (vec1 - vec2) / 2.0;
+        let connecter_orth = Vector2f {
+            x: -connecter.y * layout.size.x / layout.size.y,
+            y: connecter.x * layout.size.y / layout.size.x,
+        };
+
+        self.shape
+            .set_point(0, 1.05 * connecter_orth / 2.0 + 0.1 * connecter);
+        self.shape
+            .set_point(1, 1.05 * connecter_orth / 2.0 - 0.1 * connecter);
+        self.shape
+            .set_point(2, -1.05 * connecter_orth / 2.0 - 0.1 * connecter);
+        self.shape
+            .set_point(3, -1.05 * connecter_orth / 2.0 + 0.1 * connecter);
+
+        self.shape.set_position(center);
+        self.shape.set_outline_thickness(0.0);
+
+        self.shape.set_fill_color(&river_color(site.kind()));
+    }
+
+    pub fn shape(&self) -> &ConvexShape<'a> {
+        &self.shape
     }
 }
