@@ -6,6 +6,7 @@ use sfml::window::*;
 
 mod graphics;
 mod maps;
+mod messaging;
 mod units;
 
 use std::rc::Rc;
