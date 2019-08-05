@@ -87,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn messaging() {
+    fn message_passing() {
         let mut bus = MessageBus::new();
         let listener1 = bus.add_listener::<TestMessage1>();
         let listener2 = bus.add_listener::<TestMessage2>();
