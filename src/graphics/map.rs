@@ -1,3 +1,4 @@
+extern crate log;
 extern crate sfml;
 
 use sfml::graphics::{Color, Font, RenderTarget, Text, TextStyle, Transformable};
@@ -30,6 +31,7 @@ impl<'a> Map<'a> {
     }
 
     pub fn update(&mut self, map: &map::Map) -> &mut Self {
+        info!("Updating graphical representation of the map.");
         self.hexes = map
             .hexes()
             .values()
@@ -70,8 +72,8 @@ impl<'a> Map<'a> {
                 (self.layout.borrow().size.x * 0.5) as u32,
             );
 
-            text.set_fill_color(&Color::WHITE);
-            text.set_outline_color(&Color::WHITE);
+            text.set_fill_color(&Color::MAGENTA);
+            text.set_outline_color(&Color::MAGENTA);
             text.set_style(TextStyle::BOLD);
             text.set_origin((text.local_bounds().width / 2.0, text.local_bounds().height));
             text.set_position(hex.fill_shape().position());

@@ -1,17 +1,25 @@
 extern crate sfml;
+#[macro_use]
+extern crate log;
+extern crate simplelog;
 
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
+
+use simplelog::*;
+
+use std::rc::Rc;
 
 mod graphics;
 mod maps;
 mod messaging;
 mod units;
 
-use std::rc::Rc;
-
 fn main() {
+    TermLogger::init(LevelFilter::Trace, Config::default(), TerminalMode::Stdout).unwrap();
+
+    trace!("Initializing window.");
     let mut window = RenderWindow::new(
         (800, 600),
         "Combat theater",

@@ -1,7 +1,8 @@
+extern crate log;
+
 use std::any::*;
 use std::boxed::*;
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::marker::PhantomData;
 use std::sync::mpsc::{self, Receiver, Sender};
 
@@ -45,6 +46,7 @@ impl MessageBus {
         }
     }
     pub fn notify<T: 'static + Message + Clone + Send>(&self, message: T) {
+        info!("Sending message: {}", message.log_entry());
         let outbox = match self.listeners.get(&TypeId::of::<T>()) {
             Some(o) => o,
             None => return,
@@ -71,7 +73,7 @@ mod tests {
 
     impl Message for TestMessage1 {
         fn log_entry(&self) -> String {
-            format!("Test message 1, contains: {:?}.", self.val)
+            format!("Test message 1, contains: {}.", self.val)
         }
     }
 
@@ -82,7 +84,7 @@ mod tests {
 
     impl Message for TestMessage2 {
         fn log_entry(&self) -> String {
-            format!("Test message 2, contains: {:?}.", self.val)
+            format!("Test message 2, contains: {}.", self.val)
         }
     }
 
