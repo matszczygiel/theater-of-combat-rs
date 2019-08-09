@@ -1,12 +1,14 @@
 extern crate sfml;
 #[macro_use]
 extern crate log;
+extern crate chrono;
 extern crate simplelog;
 
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
 
+use chrono::*;
 use simplelog::*;
 
 use std::rc::Rc;
@@ -17,7 +19,9 @@ mod messaging;
 mod units;
 
 fn main() {
-    TermLogger::init(LevelFilter::Trace, Config::default(), TerminalMode::Stdout).unwrap();
+    let mut log_config = Config::default();
+    log_config.offset = offset::FixedOffset::east(2 * 3600);
+    TermLogger::init(LevelFilter::Trace, log_config, TerminalMode::Stdout).unwrap();
 
     trace!("Initializing window.");
     let mut window = RenderWindow::new(
