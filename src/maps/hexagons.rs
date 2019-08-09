@@ -19,11 +19,11 @@ impl HexCoordinates {
         HexCoordinates { x, y, z }
     }
 
-    pub fn new_axial(q: i32, r: i32) -> HexCoordinates {
+    pub fn new_axial(p: i32, q: i32) -> HexCoordinates {
         HexCoordinates {
-            x: r,
-            y: -(q + r),
-            z: q,
+            x: q,
+            y: -(p + q),
+            z: p,
         }
     }
 

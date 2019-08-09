@@ -173,15 +173,92 @@ impl Map {
     pub fn create_test_map() -> Self {
         debug!("Creating test map.");
         let mut map = Map::new();
-        for r in -1..=1 {
-            for q in -1..=1 {
-                map.insert_hex(HexSite {
-                    coord: HexCoordinates::new_axial(q, r),
-                    kind: Field::Plain,
-                })
-                .unwrap();
+        let mut offset_q = 6;
+        for p in -10..=10 {
+            if p % 2 == 0 {
+                offset_q -= 1;
+            }
+            for q in -10..=10 {
+                if q < 0 && p < 0 {
+                    map.insert_hex(HexSite {
+                        coord: HexCoordinates::new_axial(p, q + offset_q),
+                        kind: Field::Forest,
+                    })
+                    .unwrap();
+                } else {
+                    map.insert_hex(HexSite {
+                        coord: HexCoordinates::new_axial(p, q + offset_q),
+                        kind: Field::Plain,
+                    })
+                    .unwrap();
+                }
             }
         }
+
+        map.insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-10, 7),
+                HexCoordinates::new_axial(-10, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-10, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-9, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-8, 6),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 6),
+                HexCoordinates::new_axial(-7, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 6),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
         map.insert_river(
             RiverSite::new(
                 HexCoordinates::new_axial(0, -1),

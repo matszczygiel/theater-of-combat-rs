@@ -37,7 +37,7 @@ fn main() {
     ));
 
     let mut layout = maps::hexagons::Layout {
-        orientation: maps::hexagons::Orientation::FLAT,
+        orientation: maps::hexagons::Orientation::POINTY,
         size: Vector2f { x: 50.0, y: 50.0 },
         origin: Vector2f { x: 0.0, y: 0.0 },
     };
