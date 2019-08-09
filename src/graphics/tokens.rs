@@ -1,4 +1,5 @@
 extern crate sfml;
+extern crate log;
 
 use sfml::graphics::{
     Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Transformable,
@@ -11,6 +12,8 @@ use std::rc::Rc;
 
 use crate::maps::{hexagons, map};
 
+use crate::units::unit::Unit;
+
 #[derive(Debug, Clone, Default)]
 pub struct Token<'a> {
     layout: Rc<RefCell<hexagons::Layout>>,
@@ -19,24 +22,26 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
-    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, site: map::HexSite) -> Self {
+    pub fn new<U: Unit>(layout: Rc<RefCell<hexagons::Layout>>, unit: &U) -> Self {
         let mut token = Self {
             layout,
             shape: RectangleShape::default(),
             highlighting_shape: RectangleShape::default(),
         };
-        token.update(site);
+        token.update(unit);
         token
     }
 
-    pub fn update(&mut self, site: map::HexSite) {
+    pub fn update<U: Unit>(&mut self, unit: &U) {
+        info!("Updating token.");
         let layout = *self.layout.borrow();
         let size = layout.size;
         self.shape.set_size(size);
         self.shape.set_origin(size / 2.0);
+        if let Some(occ) = unit.get_occupation() {
         self.shape
-            .set_position(hexagons::hex_to_world_point(*site.coord(), layout));
-
+            .set_position(hexagons::hex_to_world_point(occ, layout));
+        }
         self.highlighting_shape = self.shape.clone();
 
         let thickness = -layout.size.x.min(layout.size.y) * 0.04;

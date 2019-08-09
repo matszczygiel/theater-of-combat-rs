@@ -2,6 +2,15 @@ extern crate sfml;
 
 use crate::maps::*;
 
+pub trait Unit {
+    fn get_name(&self) -> &String;
+    fn cost_of_entering_hex(field: types::Field) -> i32;
+
+    fn cost_of_crossing_river(river: types::River) -> i32;
+
+    fn get_occupation(&self) -> Option<hexagons::HexCoordinates>;
+}
+
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
 pub struct MovingComponent {
     def_moving_pts: i32,
@@ -40,25 +49,31 @@ impl Mechanized {
             },
         }
     }
+}
 
-    pub fn cost_of_entering_hex(field: types::Field) -> i32 {
+impl Unit for Mechanized {
+    fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    fn get_occupation(&self) -> Option<hexagons::HexCoordinates> {
+        self.mc.occupation
+    }
+
+    fn cost_of_entering_hex(field: types::Field) -> i32 {
         match field {
             types::Field::Forest => 2,
             types::Field::Plain => 1,
-            _ => panic!(),
+            _ => unreachable!(),
         }
     }
 
-    pub fn cost_of_crossing_river(river: types::River) -> i32 {
+    fn cost_of_crossing_river(river: types::River) -> i32 {
         match river {
             types::River::Small => 6,
             types::River::Stream => 4,
-            _ => panic!(),
+            _ => unreachable!(),
         }
-    }
-
-    pub fn get_name(&self) -> &String {
-        &self.name
     }
 }
 
