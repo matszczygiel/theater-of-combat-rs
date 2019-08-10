@@ -1,102 +1,423 @@
+extern crate log;
 extern crate sfml;
 
-use sfml::graphics::{Drawable, RenderStates, RenderTarget};
-use sfml::system::Vector2f;
+use super::graph::*;
+use super::hexagons::*;
+use super::types::*;
 
-use crate::field::*;
-use crate::hexagons::*;
+use std::collections::{HashMap, HashSet};
 
-use std::collections::HashMap;
-use std::rc::Rc;
-
-#[derive(Debug, Clone, Default)]
-pub struct Map<'a> {
-    map: HashMap<HexCoordinates, (Field, HexShape<'a>)>,
-    rivers: HashMap<(HexCoordinates, HexCoordinates), (River, RiverShape<'a>)>,
-    layout: Rc<Layout>,
+#[derive(Debug, Clone, Copy)]
+pub struct HexSite {
+    coord: HexCoordinates,
+    kind: Field,
 }
 
-impl<'a> Map<'a> {
-    pub fn new(layout: Layout) -> Self {
-        Map {
-            map: HashMap::default(),
-            rivers: HashMap::default(),
-            layout: Rc::from(layout),
+impl HexSite {
+    pub fn new(coord: HexCoordinates, kind: Field) -> HexSite {
+        HexSite { coord, kind }
+    }
+
+    pub fn coord(&self) -> &HexCoordinates {
+        &self.coord
+    }
+
+    pub fn kind(&self) -> Field {
+        self.kind
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct RiverSite {
+    side1: HexCoordinates,
+    side2: HexCoordinates,
+    kind: River,
+}
+
+impl RiverSite {
+    pub fn new(
+        side1: HexCoordinates,
+        side2: HexCoordinates,
+        kind: River,
+    ) -> Result<Self, &'static str> {
+        if side1.neighbors().contains(&side2) {
+            Ok(RiverSite { side1, side2, kind })
+        } else {
+            Err("Creating RiverSite with non neighboring sides.")
         }
     }
 
-    pub fn insert(&mut self, coordinate: HexCoordinates, field: Field) {
-        let mut hex_shape = HexShape::new(self.layout.clone(), coordinate);
-        hex_shape.set_color(&field.color());
-        self.map.insert(coordinate, (field, hex_shape));
+    pub fn sides(&self) -> (&HexCoordinates, &HexCoordinates) {
+        (&self.side1, &self.side2)
     }
 
-    pub fn new_test(layout: Layout) -> Self {
-        let mut map = Self::new(layout);
-        for p in -5..5 {
-            for q in -5..5 {
-                if q < 0 && p < 0 {
-                    map.insert(HexCoordinates::new_axial(q, p), Field::Forest);
+    pub fn kind(&self) -> River {
+        self.kind
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Map {
+    graph: BidirectionalGraph<i32>,
+    hexes: HashMap<i32, HexSite>,
+    rivers: HashMap<i32, RiverSite>,
+
+    current_free_id: i32,
+}
+
+impl Map {
+    pub fn new() -> Self {
+        Map {
+            graph: BidirectionalGraph::default(),
+            hexes: HashMap::default(),
+            rivers: HashMap::default(),
+            current_free_id: 0,
+        }
+    }
+
+    pub fn hexes(&self) -> &HashMap<i32, HexSite> {
+        &self.hexes
+    }
+
+    pub fn rivers(&self) -> &HashMap<i32, RiverSite> {
+        &self.rivers
+    }
+
+    pub fn insert_hex(&mut self, hex: HexSite) -> Result<&mut Self, &'static str> {
+        if self
+            .hexes
+            .iter()
+            .find(|&(_, h)| {
+                if h.coord == hex.coord {
+                    return true;
                 } else {
-                    map.insert(HexCoordinates::new_axial(q, p), Field::Plain);
+                    return false;
+                }
+            })
+            .is_some()
+        {
+            return Err("Map already contains such hex.");
+        }
+
+        let neighbours = hex.coord.neighbors();
+
+        let found_neighbors: HashMap<_, _> = self
+            .hexes
+            .clone()
+            .into_iter()
+            .filter(|(id, h)| {
+                if neighbours.contains(&h.coord) {
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+            .collect();
+
+        self.hexes.insert(self.current_free_id, hex);
+
+        self.graph.insert_node(
+            self.current_free_id,
+            found_neighbors.keys().cloned().collect(),
+        )?;
+        self.current_free_id += 1;
+        Ok(self)
+    }
+
+    pub fn insert_river(&mut self, river: RiverSite) -> Result<&mut Self, &'static str> {
+        let found_hexes: HashMap<_, _> = self
+            .hexes
+            .iter()
+            .filter(|&(_, hex)| {
+                if hex.coord == river.side1 || hex.coord == river.side2 {
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+            .collect();
+
+        if found_hexes.len() < 2 {
+            return Err("Map doesn't contains such hexes.");
+        } else if found_hexes.len() > 2 {
+            return Err("Map contains too much such hexes - they must double somehow.");
+        }
+
+        let found_rivs = self
+            .rivers
+            .values()
+            .filter(|&riv| {
+                if riv.side1 == river.side1 && riv.side2 == river.side2 {
+                    return true;
+                } else if riv.side1 == river.side2 && riv.side2 == river.side1 {
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+            .count();
+
+        if found_rivs > 0 {
+            return Err("Already foud such river.");
+        }
+
+        self.rivers.insert(self.current_free_id, river);
+        self.graph.insert_node(
+            self.current_free_id,
+            found_hexes.keys().cloned().cloned().collect(),
+        )?;
+        self.current_free_id += 1;
+        Ok(self)
+    }
+
+    pub fn create_test_map() -> Self {
+        debug!("Creating test map.");
+        let mut map = Map::new();
+        let mut offset_q = 6;
+        for p in -10..=10 {
+            if p % 2 == 0 {
+                offset_q -= 1;
+            }
+            for q in -10..=10 {
+                if q < 0 && p < 0 {
+                    map.insert_hex(HexSite {
+                        coord: HexCoordinates::new_axial(p, q + offset_q),
+                        kind: Field::Forest,
+                    })
+                    .unwrap();
+                } else {
+                    map.insert_hex(HexSite {
+                        coord: HexCoordinates::new_axial(p, q + offset_q),
+                        kind: Field::Plain,
+                    })
+                    .unwrap();
                 }
             }
         }
+
+        map.insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-10, 7),
+                HexCoordinates::new_axial(-10, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-10, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-9, 8),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-9, 7),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-8, 6),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 6),
+                HexCoordinates::new_axial(-7, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 6),
+                HexCoordinates::new_axial(-8, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 7),
+                HexCoordinates::new_axial(-6, 6),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-6, 7),
+                HexCoordinates::new_axial(-6, 6),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-5, 6),
+                HexCoordinates::new_axial(-6, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-5, 7),
+                HexCoordinates::new_axial(-6, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        map.insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, -1),
+                HexCoordinates::new_axial(1, -1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, 0),
+                HexCoordinates::new_axial(1, -1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, 0),
+                HexCoordinates::new_axial(1, 0),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(1, 0),
+                HexCoordinates::new_axial(0, 1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap();
         map
-    }
-
-    pub fn highlight(&mut self, coordinate: HexCoordinates, highlighted: bool) {
-        let entry = self.map.get_mut(&coordinate);
-        match entry {
-            Some((_, shape)) => shape.highlighted = highlighted,
-            None => {}
-        };
-    }
-
-    pub fn highlight_at_world_point(&mut self, point: Vector2f, highlighted: bool) {
-        self.highlight(world_point_to_hex(point, *self.layout), highlighted);
-    }
-
-    pub fn clear_highlighting(&mut self) {
-        for (_, (_, shape)) in self.map.iter_mut() {
-            shape.highlighted = false;
-        }
-    }
-
-    pub fn hex_to_world_point(&self, hex: HexCoordinates) -> Result<Vector2f, &'static str> {
-        if self.map.contains_key(&hex) {
-            Ok(hex_to_world_point(hex, *self.layout))
-        }
-        else {
-            Err("Map doesn't contain such hex")
-        }
-    }
-
-    pub fn insert_river(&mut self, coordinate1: HexCoordinates, coordinate2: HexCoordinates, river: River) ->Result<(), &'static str> {
-        let mut riv_shape = RiverShape::new(self.layout.clone(), coordinate1, coordinate2)?;
-        riv_shape.set_color(&river.color());
-        if self.map.contains_key(&coordinate1) && self.map.contains_key(&coordinate2) {
-        self.rivers.insert((coordinate1, coordinate2), (river, riv_shape));
-        Ok(())
-        }
-        else {
-            Err("Map doesn't contains respective hexes")
-        }
     }
 }
 
-impl<'s> Drawable for Map<'s> {
-    fn draw<'a: 'shader, 'texture, 'shader, 'shader_texture>(
-        &'a self,
-        target: &mut RenderTarget,
-        _: RenderStates<'texture, 'shader, 'shader_texture>,
-    ) {
-        for (_, (_, shape)) in self.map.iter() {
-            target.draw(shape);
-        }
-        for (_, (_, shape)) in self.rivers.iter() {
-            target.draw(shape);
-        }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    #[test]
+    fn test_simple_map_insertions() {
+        let mut map = Map::new();
+        for r in -1..=1 {
+            for q in -1..=1 {
+                map.insert_hex(HexSite {
+                    coord: HexCoordinates::new_axial(q, r),
+                    kind: Field::Plain,
+                })
+                .unwrap();
+            }
+        }
+        map.insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, -1),
+                HexCoordinates::new_axial(1, -1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, 0),
+                HexCoordinates::new_axial(1, -1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(0, 0),
+                HexCoordinates::new_axial(1, 0),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(1, 0),
+                HexCoordinates::new_axial(0, 1),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        let mut graph = BidirectionalGraph::new();
+        graph
+            .insert_node(0, HashSet::default())
+            .unwrap()
+            .insert_node(1, [0].iter().cloned().collect())
+            .unwrap()
+            .insert_node(2, [1].iter().cloned().collect())
+            .unwrap()
+            .insert_node(3, [0, 1].iter().cloned().collect())
+            .unwrap()
+            .insert_node(4, [3, 1, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(5, [4, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(6, [3, 4].iter().cloned().collect())
+            .unwrap()
+            .insert_node(7, [6, 4, 5].iter().cloned().collect())
+            .unwrap()
+            .insert_node(8, [5, 7].iter().cloned().collect())
+            .unwrap()
+            .insert_node(9, [1, 2].iter().cloned().collect())
+            .unwrap()
+            .insert_node(10, [2, 4].iter().cloned().collect())
+            .unwrap()
+            .insert_node(11, [4, 5].iter().cloned().collect())
+            .unwrap()
+            .insert_node(12, [5, 7].iter().cloned().collect())
+            .unwrap();
+
+        assert_eq!(map.graph, graph);
     }
+
 }

@@ -1,15 +1,29 @@
 extern crate sfml;
-
-pub mod maps;
-pub mod units;
+#[macro_use]
+extern crate log;
+extern crate chrono;
+extern crate simplelog;
 
 use sfml::graphics::*;
 use sfml::system::{Vector2f, Vector2i};
 use sfml::window::*;
 
-use maps::*;
+use chrono::*;
+use simplelog::*;
+
+use std::rc::Rc;
+
+mod graphics;
+mod maps;
+mod messaging;
+mod units;
 
 fn main() {
+    let mut log_config = Config::default();
+    log_config.offset = offset::FixedOffset::east(2 * 3600);
+    TermLogger::init(LevelFilter::Trace, log_config, TerminalMode::Stdout).unwrap();
+
+    trace!("Initializing window.");
     let mut window = RenderWindow::new(
         (800, 600),
         "Combat theater",
@@ -17,31 +31,26 @@ fn main() {
         &Default::default(),
     );
     window.set_framerate_limit(60);
-
-    let layout = hexagons::Layout {
-        orientation: hexagons::Orientation::FLAT,
-        size: Vector2f { x: 50.0, y: 50.0 },
-        origin: Vector2f { x: 0.0, y: 0.0 },
-    };
-
-    let mut map = maps::map::Map::new_test(layout);
-    map.insert_river(hexagons::HexCoordinates::new_axial(1, 0), hexagons::HexCoordinates::new_axial(1, -1), field::River::Stream);
-
-    map.highlight(hexagons::HexCoordinates::new_axial(0, 0), true);
-
     window.set_view(&View::new(
         Vector2f { x: 0.0, y: 0.0 },
         window.view().size(),
     ));
-    println!(
-        "c: {:?}, s: {:?}",
-        window.view().center(),
-        window.view().size()
-    );
+
+    let mut layout = maps::hexagons::Layout {
+        orientation: maps::hexagons::Orientation::POINTY,
+        size: Vector2f { x: 50.0, y: 50.0 },
+        origin: Vector2f { x: 0.0, y: 0.0 },
+    };
+
+    let map = maps::map::Map::create_test_map();
+    let mut map_gfx = graphics::map::Map::new(&map, layout);
+
+    let font = Font::from_file("resources/fonts/OpenSans-Regular.ttf").unwrap();
 
     let mut unit = units::unit::Mechanized::new("test unit");
-    unit.place_on_hex(hexagons::HexCoordinates::new_axial(1, -1), &map)
-        .unwrap();
+    unit.mc.occupation = Some(maps::hexagons::HexCoordinates::new_axial(1, -1));
+
+    let mut token = graphics::tokens::Token::new(map_gfx.layout.clone(), &unit);
 
     let mut current_mouse_pos = Vector2i::default();
 
@@ -52,25 +61,27 @@ fn main() {
                 Event::KeyPressed { code, .. } => match code {
                     Key::Right => {
                         let mut view = window.view().to_owned();
-                        view.move_((5.0, 0.0));
+                        view.move_((8.0, 0.0));
                         window.set_view(&view);
                     }
                     Key::Left => {
                         let mut view = window.view().to_owned();
-                        view.move_((-5.0, 0.0));
+                        view.move_((-8.0, 0.0));
                         window.set_view(&view);
                     }
                     Key::Up => {
                         let mut view = window.view().to_owned();
-                        view.move_((0.0, -5.0));
+                        view.move_((0.0, -8.0));
                         window.set_view(&view);
                     }
                     Key::Down => {
                         let mut view = window.view().to_owned();
-                        view.move_((0.0, 5.0));
+                        view.move_((0.0, 8.0));
                         window.set_view(&view);
                     }
                     Key::Escape => window.close(),
+                    Key::W => map_gfx.layout.borrow_mut().size.y *= 0.95,
+                    Key::S => map_gfx.layout.borrow_mut().size.y *= 1.05,
                     _ => {}
                 },
                 Event::MouseWheelScrolled {
@@ -101,13 +112,29 @@ fn main() {
             }
         }
 
-        map.clear_highlighting();
-        let mouse_pos = window.map_pixel_to_coords_current_view(&current_mouse_pos);
-        map.highlight_at_world_point(mouse_pos, true);
+        map_gfx.update(&map);
+        token.update(&unit);
 
         window.clear(&Color::CYAN);
-        window.draw(&map);
-        window.draw(unit.get_token());
+
+        map_gfx.draw_hexes(&mut window);
+        map_gfx.draw_rivers(&mut window);
+        map_gfx.draw_outlines(&mut window);
+        map_gfx.draw_coords(&mut window, &font);
+
+        window.draw(token.fill_shape());
+
+        let coordinate = maps::hexagons::world_point_to_hex(
+            window.map_pixel_to_coords_current_view(&current_mouse_pos),
+            map_gfx.layout.borrow().clone(),
+        );
+
+        let entry = map_gfx.hexes.get(&coordinate);
+        match entry {
+            Some(shape) => window.draw(shape.highlight_shape()),
+            None => {}
+        };
+
         window.display();
     }
 }
