@@ -61,22 +61,22 @@ fn main() {
                 Event::KeyPressed { code, .. } => match code {
                     Key::Right => {
                         let mut view = window.view().to_owned();
-                        view.move_((5.0, 0.0));
+                        view.move_((8.0, 0.0));
                         window.set_view(&view);
                     }
                     Key::Left => {
                         let mut view = window.view().to_owned();
-                        view.move_((-5.0, 0.0));
+                        view.move_((-8.0, 0.0));
                         window.set_view(&view);
                     }
                     Key::Up => {
                         let mut view = window.view().to_owned();
-                        view.move_((0.0, -5.0));
+                        view.move_((0.0, -8.0));
                         window.set_view(&view);
                     }
                     Key::Down => {
                         let mut view = window.view().to_owned();
-                        view.move_((0.0, 5.0));
+                        view.move_((0.0, 8.0));
                         window.set_view(&view);
                     }
                     Key::Escape => window.close(),

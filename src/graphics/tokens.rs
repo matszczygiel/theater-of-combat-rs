@@ -1,5 +1,5 @@
-extern crate sfml;
 extern crate log;
+extern crate sfml;
 
 use sfml::graphics::{
     Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Transformable,
@@ -33,14 +33,14 @@ impl<'a> Token<'a> {
     }
 
     pub fn update<U: Unit>(&mut self, unit: &U) {
-        info!("Updating token.");
+        info!("Updating token, for unit: {}", unit.get_name());
         let layout = *self.layout.borrow();
         let size = layout.size;
         self.shape.set_size(size);
         self.shape.set_origin(size / 2.0);
         if let Some(occ) = unit.get_occupation() {
-        self.shape
-            .set_position(hexagons::hex_to_world_point(occ, layout));
+            self.shape
+                .set_position(hexagons::hex_to_world_point(occ, layout));
         }
         self.highlighting_shape = self.shape.clone();
 

@@ -257,6 +257,42 @@ impl Map {
             )
             .unwrap(),
         )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-7, 7),
+                HexCoordinates::new_axial(-6, 6),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-6, 7),
+                HexCoordinates::new_axial(-6, 6),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-5, 6),
+                HexCoordinates::new_axial(-6, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
+        .unwrap()
+        .insert_river(
+            RiverSite::new(
+                HexCoordinates::new_axial(-5, 7),
+                HexCoordinates::new_axial(-6, 7),
+                River::Stream,
+            )
+            .unwrap(),
+        )
         .unwrap();
 
         map.insert_river(

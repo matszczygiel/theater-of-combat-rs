@@ -9,6 +9,8 @@ pub trait Unit {
     fn cost_of_crossing_river(river: types::River) -> i32;
 
     fn get_occupation(&self) -> Option<hexagons::HexCoordinates>;
+
+    fn update(&mut self) {}
 }
 
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
