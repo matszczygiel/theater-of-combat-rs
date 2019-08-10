@@ -7,19 +7,27 @@ use sfml::window::*;
 
 use super::graphics;
 use super::maps::*;
+use super::systems;
 use super::units;
 
 pub struct Game {
     running: bool,
     map: map::Map,
+    systems: systems::GameSystems,
+    units: units::unit_set::UnitSet,
 }
 
 impl Game {
     pub fn new() -> Self {
-        Game {
+        let mut game = Self {
             running: false,
             map: map::Map::create_test_map(),
-        }
+            systems: systems::GameSystems::new(),
+            units: units::unit_set::UnitSet::new(),
+        };
+
+        game.units = units::unit_set::UnitSet::create_test_unit_set(&mut game.systems);
+        game
     }
 
     pub fn run(&mut self) -> Result<(), &'static str> {
@@ -48,10 +56,10 @@ impl Game {
         let font = Font::from_file("resources/fonts/OpenSans-Regular.ttf")
             .ok_or("Failed to load font.")?;
 
-        let mut unit = units::unit::Mechanized::new("test unit");
-        unit.mc.occupation = Some(hexagons::HexCoordinates::new_axial(1, -1));
+        //    let mut unit = units::unit::Mechanized::new("test unit");
+        // unit.mc.occupation = Some(hexagons::HexCoordinates::new_axial(1, -1));
 
-        let mut token = graphics::tokens::Token::new(map_gfx.layout.clone(), &unit);
+        //  let mut token = graphics::tokens::Token::new(map_gfx.layout.clone(), &unit);
 
         let mut current_mouse_pos = Vector2i::default();
 
@@ -114,7 +122,7 @@ impl Game {
             }
 
             map_gfx.update(&self.map);
-            token.update(&unit);
+            //     token.update(&unit);
 
             window.clear(&Color::CYAN);
 
@@ -123,7 +131,7 @@ impl Game {
             map_gfx.draw_outlines(&mut window);
             map_gfx.draw_coords(&mut window, &font);
 
-            window.draw(token.fill_shape());
+            //       window.draw(token.fill_shape());
 
             let coordinate = hexagons::world_point_to_hex(
                 window.map_pixel_to_coords_current_view(&current_mouse_pos),

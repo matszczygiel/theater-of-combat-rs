@@ -11,6 +11,7 @@ mod maps;
 mod messaging;
 mod units;
 mod graphics;
+mod systems;
 
 fn main() {
     let mut log_config = Config::default();

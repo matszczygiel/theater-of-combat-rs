@@ -2,6 +2,37 @@ extern crate sfml;
 
 use crate::maps::*;
 
+#[derive(Debug, Copy, Clone)]
+pub enum UnitType {
+    Mechanized,
+}
+
+#[derive(Debug, Clone)]
+pub struct Unit {
+    name: String,
+    kind: UnitType,
+    id: i32,
+}
+
+impl Unit {
+    pub fn new(name: String, kind: UnitType, id: i32) ->Self {
+        Unit{name, kind ,id}
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn kind(&self) -> UnitType {
+        self.kind
+    }
+
+    pub fn id(&self) -> i32 {
+        self.id
+    }
+}
+
+/*
 pub trait Unit {
     fn get_name(&self) -> &String;
     fn cost_of_entering_hex(field: types::Field) -> i32;
@@ -92,3 +123,4 @@ mod tests {
         // let paths = unit.mc.get_accesible_sites(&map).unwrap();
     }
 }
+*/
