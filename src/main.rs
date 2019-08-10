@@ -1,23 +1,16 @@
-extern crate sfml;
 #[macro_use]
 extern crate log;
 extern crate chrono;
 extern crate simplelog;
 
-use sfml::graphics::*;
-use sfml::system::{Vector2f, Vector2i};
-use sfml::window::*;
-
 use chrono::*;
 use simplelog::*;
 
-use std::rc::Rc;
-
 mod game;
-mod graphics;
 mod maps;
 mod messaging;
 mod units;
+mod graphics;
 
 fn main() {
     let mut log_config = Config::default();
