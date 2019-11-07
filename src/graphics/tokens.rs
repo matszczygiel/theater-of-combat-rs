@@ -22,7 +22,7 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
-    pub fn new<U: Unit>(layout: Rc<RefCell<hexagons::Layout>>, unit: &U) -> Self {
+    pub fn new(layout: Rc<RefCell<hexagons::Layout>>, unit: &Unit) -> Self {
         let mut token = Self {
             layout,
             shape: RectangleShape::default(),
@@ -32,16 +32,16 @@ impl<'a> Token<'a> {
         token
     }
 
-    pub fn update<U: Unit>(&mut self, unit: &U) {
-        info!("Updating token, for unit: {}", unit.get_name());
+    pub fn update(&mut self, unit: &Unit) {
+        info!("Updating token, for unit: {}", unit.name());
         let layout = *self.layout.borrow();
         let size = layout.size;
         self.shape.set_size(size);
         self.shape.set_origin(size / 2.0);
-        if let Some(occ) = unit.get_occupation() {
-            self.shape
-                .set_position(hexagons::hex_to_world_point(occ, layout));
-        }
+ //       if let Some(occ) = unit.get_occupation() {
+ //           self.shape
+ //               .set_position(hexagons::hex_to_world_point(occ, layout));
+ //       }
         self.highlighting_shape = self.shape.clone();
 
         let thickness = -layout.size.x.min(layout.size.y) * 0.04;
